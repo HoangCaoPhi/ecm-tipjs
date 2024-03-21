@@ -1,9 +1,9 @@
 'use strict'
 
-const { BadRequestError } = require("../core/error.response")
+const { BadRequestError, AuthFailureError, ForbidenError } = require("../core/error.response")
 const shopModel = require("../models/shop.model")
 const { getInfoData } = require("../utils")
-const { createTokenPair } = require("../utils/auth/authUtils")
+const { createTokenPair, vefifyToken } = require("../utils/auth/authUtils")
 const KeyTokenService = require("./keyToken.service")
 const bcrypt = require('bcrypt')
 const crypto = require('crypto')
@@ -112,6 +112,47 @@ class AccessService {
         const delKey = await KeyTokenService.removeToken(keyStore._id)
         console.log({delKey});
         return delKey
+    }
+
+    /**
+     * Check token used
+     * @param {*} refreshToken 
+     */
+    static handleRefreshToken = async (refreshToken) => {
+        const foundToken = await KeyTokenService.findByRefreshTokenUsed(refreshToken)
+
+        console.log("foundToken", foundToken);
+        if(foundToken) {
+            const {userId, email} = await vefifyToken(refreshToken, foundToken.privateKey)
+            console.log({userId, email});
+ 
+            await KeyTokenService.deleteKeyById(userId)
+
+            throw new ForbidenError('Something wrong happend!! Please relogin')
+        }     
+        
+        const holderToken = await KeyTokenService.findByRefreshToken(refreshToken)
+        if(!holderToken) throw new AuthFailureError('Shop not register')
+
+        const {userId, email} = await vefifyToken(refreshToken, holderToken.privateKey)
+        const foundShop = await findByEmail({email})
+        if(!foundShop) throw new AuthFailureError('Shop not register 2')
+
+        const token = await createTokenPair({ userId: userId, email: email }, holderToken.publicKey, holderToken.privateKey)
+ 
+        await holderToken.updateOne({
+            $set: {
+                refreshToken: token.refreshToken
+            },
+            $addToSet: {
+                refreshTokensUsed: refreshToken
+            }
+        }) 
+
+        return {
+            user: {userId, email},
+            token
+        }
     }
 }
 

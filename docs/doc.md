@@ -1,4 +1,5 @@
-
-
 ### Token
-+ 
+
+### Polymorphic pattern
+
+

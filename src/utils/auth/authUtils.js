@@ -2,7 +2,7 @@
 
 const JWT = require('jsonwebtoken')
 const { asyncHandler } = require('../../helper/asyncHandler')
-const { AuthFailureError } = require('../../core/error.response')
+const { AuthFailureError, NotFoundError } = require('../../core/error.response')
 const { findByUserID } = require('../../services/keyToken.service')
 const HEADER = require('../../common/const/header.const')
  
@@ -55,7 +55,12 @@ const authentication = asyncHandler( async (req, res, next) => {
     }
 })
 
+const vefifyToken = async(token, keySecret) => {
+    return await JWT.verify(token, keySecret)
+}   
+
 module.exports = {
     createTokenPair,
-    authentication
+    authentication,
+    vefifyToken
 }
