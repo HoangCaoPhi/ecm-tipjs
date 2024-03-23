@@ -1,6 +1,7 @@
 
 module.exports = {
     API_KEY: 'x-api-key',
-    AUTHORIZATION: 'authorization',
-    CLIENT_ID: 'x-client-id'
+    AUTHORIZATION: 'x-api-key',
+    CLIENT_ID: 'x-client-id',
+    REFRESH_TOKEN: 'x-rtoken-id'
 }

@@ -28,7 +28,7 @@ class AccessService {
         const privateKey = crypto.randomBytes(64).toString('hex')
         const publicKey = crypto.randomBytes(64).toString('hex')
  
-        const token = await createTokenPair({ userId: shopID, email: email }, publicKey, privateKey)
+        const token = await createTokenPair({ userID: shopID, email: email }, publicKey, privateKey)
 
         await KeyTokenService.createKeyToken({
             refreshToken: token.refreshToken,
@@ -77,9 +77,9 @@ class AccessService {
 
             console.log(`Private ${privateKey} and Public key: ${publicKey}`);
 
-            const userId = newShop._id
+            const userID = newShop._id
 
-            const keyStore = await KeyTokenService.createKeyToken({ userID: userId, publicKey: publicKey, privateKey: privateKey })
+            const keyStore = await KeyTokenService.createKeyToken({ userID: userID, publicKey: publicKey, privateKey: privateKey })
 
             if (!keyStore) {
                 return {
@@ -88,7 +88,7 @@ class AccessService {
                 }
             }
 
-            const token = await createTokenPair({ userId: userId, email: email }, publicKey, privateKey)
+            const token = await createTokenPair({ userID: userID, email: email }, publicKey, privateKey)
             console.log(`Create token`, token);
 
             return {
@@ -118,29 +118,25 @@ class AccessService {
      * Check token used
      * @param {*} refreshToken 
      */
-    static handleRefreshToken = async (refreshToken) => {
-        const foundToken = await KeyTokenService.findByRefreshTokenUsed(refreshToken)
+    static handleRefreshToken = async ({refreshToken, user, keyStore}) => {
+        const { userID, email } = user
 
-        console.log("foundToken", foundToken);
-        if(foundToken) {
-            const {userId, email} = await vefifyToken(refreshToken, foundToken.privateKey)
-            console.log({userId, email});
- 
-            await KeyTokenService.deleteKeyById(userId)
+        console.log("handleRefreshToken", keyStore);
 
+        if(keyStore.refreshTokensUsed.includes(refreshToken)) {
+            await KeyTokenService.deleteKeyById(userID)
             throw new ForbidenError('Something wrong happend!! Please relogin')
-        }     
-        
-        const holderToken = await KeyTokenService.findByRefreshToken(refreshToken)
-        if(!holderToken) throw new AuthFailureError('Shop not register')
+        }
 
-        const {userId, email} = await vefifyToken(refreshToken, holderToken.privateKey)
+        if(keyStore.refreshToken !== refreshToken) {
+            throw new AuthFailureError('Shop not register')
+        }
+
         const foundShop = await findByEmail({email})
         if(!foundShop) throw new AuthFailureError('Shop not register 2')
 
-        const token = await createTokenPair({ userId: userId, email: email }, holderToken.publicKey, holderToken.privateKey)
- 
-        await holderToken.updateOne({
+        const token = await createTokenPair({ userID: userID, email: email }, keyStore.publicKey, keyStore.privateKey)
+        await keyStore.updateOne({
             $set: {
                 refreshToken: token.refreshToken
             },
@@ -150,7 +146,7 @@ class AccessService {
         }) 
 
         return {
-            user: {userId, email},
+            user: {userID, email},
             token
         }
     }

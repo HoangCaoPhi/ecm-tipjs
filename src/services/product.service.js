@@ -6,6 +6,7 @@ const { products, clothes, electronics } = require('../models/product.model')
 
 class ProductFactory {
     static async createProduct(type, payload) {
+        console.log("type and payload", {type, payload });
         switch (type) {
             case productTypeConst.Electronics:
                 return new Electronics(payload).createProduct()
@@ -37,8 +38,8 @@ class Product {
             this.product_attributes = product_attributes
     }
 
-    async createProduct() {
-        return await products.create(this)
+    async createProduct(product_id) {
+        return await products.create({...this, _id: product_id})
     }
 
 }
@@ -57,10 +58,32 @@ class Clothing extends Product {
 
 class Electronics extends Product {
     async createProduct() {
-        const newElec = await clothes.create(this.product_attributes)
+        const newElec = await electronics.create({
+            ...this.product_attributes,
+            product_shop: this.product_shop
+        })
         if(!newElec) throw new BadRequestError('Create new newElec error')
 
-        const newProduct = await super.createProduct()
+        console.log("newElect", newElec);
+
+        const newProduct = await super.createProduct(newElec._id)
+        if(!newProduct) throw new BadRequestError('Create new product error')
+
+        return newProduct
+    }
+}
+
+class Furniture extends Product {
+    async createProduct() {
+        const newElec = await electronics.create({
+            ...this.product_attributes,
+            product_shop: this.product_shop
+        })
+        if(!newElec) throw new BadRequestError('Create new newElec error')
+
+        console.log("newElect", newElec);
+
+        const newProduct = await super.createProduct(newElec._id)
         if(!newProduct) throw new BadRequestError('Create new product error')
 
         return newProduct
