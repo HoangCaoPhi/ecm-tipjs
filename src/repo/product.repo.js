@@ -39,11 +39,32 @@ class ProductRepo {
                 $search: regexSearch
             }
         }, { score: { $meta: 'textScore' } })
-        .sort({ score: { $meta: 'textScore' } }).lean()
+            .sort({ score: { $meta: 'textScore' } }).lean()
 
         return result
     }
 
+
+    static findAllProducts = async ({ limit, sort, page, filter, select }) => {
+        const skip = (page - 1) * limit
+        const sortBy = sort === 'ctime' ? { _id: -1 } : { _id: 1 }
+        const product = await products.find(filter)
+            .sort(sortBy)
+            .skip(skip)
+            .limit(limit)
+            .select(select)
+            .lean()
+
+        return product
+    }
+
+    static getProductByID = async ({ product_id, unSelect }) => {
+        return await products.findById(product_id).select(unSelect)
+    }
+
+    static async updateProductByID({ productID, bodyUpdate, model, isNew = true}) {
+        return await model.findByIdAndUpdate(productID, bodyUpdate, {new: isNew})
+    }   
 }
 
 module.exports = ProductRepo
