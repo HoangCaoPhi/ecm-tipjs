@@ -24,6 +24,11 @@ require('./dbs/init.mongodb')
 // const {checkOverload} = require('./helper/checkConnect')
 // checkOverload()
 
+//test pub.sub redis
+require('./tests/inventory.test')
+const productTest = require('./tests/product.test')
+productTest.purchaseProduct('product:001', 10)
+
 // Init Route
 app.use('/', require('./routes/index'))
 
