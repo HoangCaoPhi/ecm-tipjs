@@ -1,7 +1,8 @@
 'use strict'
 
 const { Types } = require('mongoose')
-const { products, clothes, electronics, funiture } = require('../models/product.model')
+const { products, clothes, electronics, funiture } = require('../models/product.model');
+const { convertToObjectIdMongo } = require('../utils');
 
 class ProductRepo {
     static getProductByQuery = async ({ query, limit, skip }) => {
@@ -62,9 +63,26 @@ class ProductRepo {
         return await products.findById(product_id).select(unSelect)
     }
 
-    static async updateProductByID({ productID, bodyUpdate, model, isNew = true}) {
-        return await model.findByIdAndUpdate(productID, bodyUpdate, {new: isNew})
-    }   
+    static async updateProductByID({ productID, bodyUpdate, model, isNew = true }) {
+        return await model.findByIdAndUpdate(productID, bodyUpdate, { new: isNew })
+    }
+
+    static async checkProductByServe(products) {
+
+        console.log("checkProductServer", products);
+        return await Promise.all(products.map(async product => {
+ 
+            const foundProduct = await this.getProductByID({product_id: convertToObjectIdMongo(product.product_id)})
+ 
+            if (foundProduct) {
+                return {
+                    price: foundProduct.product_price,
+                    quantity: product.quantity,
+                    product_id: product.product_id
+                }
+            }
+        }))
+    }
 }
 
 module.exports = ProductRepo
