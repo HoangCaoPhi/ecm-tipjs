@@ -1,0 +1,14 @@
+- Làm thế nào đảm bảo message ko bị mất
+- Làm sao xử lý message trùng lặp
+- Làm sao đảm bảo message đúng thứ thự
+- Tình huồng tích lũy tin nhắn???
+
+- Xử lý error, time to live
+    - Dead letter exchanges
+        - Xử lý bị lỗi
+        - Hết hạn message
+        - Hàng đợi đạt đến độ dài tối đa
+    - 
+- Đảm bảo thứ tự message?
+    - prefetch
+    - global prefetch?

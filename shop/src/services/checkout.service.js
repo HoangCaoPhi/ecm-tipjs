@@ -85,7 +85,7 @@ class CheckoutService {
     }
 
     static async orderByUser({
-        shopOrderIdsNew,
+        //shopOrderIdsNew,
         cartID,
         userID,
         userAddress = {},
@@ -114,7 +114,7 @@ class CheckoutService {
             acquireProduct.push(keyLock ? true : false)
 
             if(keyLock) {
-                await RedisService.releaseLock(keyLock)
+                //await RedisService.releaseLock(keyLock)
             }
         }
 

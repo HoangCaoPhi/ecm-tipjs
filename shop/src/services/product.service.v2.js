@@ -6,7 +6,9 @@ const { products, clothes, electronics, funiture } = require('../models/product.
 const InventoryRepo = require('../repo/inventory.repo')
 const ProductRepo = require('../repo/product.repo')
 const { convertSelectArrayToSelectObj, convertSelectArrayToUnSelectObj, removeNullAndUndefined, updateNestedObjectParse } = require('../utils')
-
+const NotificationService = require('../services/notification.service')
+const notificationType = require('../common/enum/notification/notification.type')
+ 
 class ProductFactory {
     static productRegistry = {}
     static registerProductType(type, classRef) {
@@ -15,8 +17,7 @@ class ProductFactory {
 
     static async createProduct(type, payload) {
         const productClass = ProductFactory.productRegistry[type]
-        if (!productClass) throw new BadRequestError('Invalid product type')
-
+        if (!productClass) throw new BadRequestError('Invalid product type')    
         return new productClass(payload).createProduct()
     }
 
@@ -104,6 +105,17 @@ class Product {
                 stock: this.product_quantity
             })
         }
+
+        NotificationService.pushNotificationToSystem({
+            type: notificationType.Shop001,
+            receiveId: 1,
+            senderId: this.product_shop,
+            options: {
+                product_name: this.product_name,
+                shop_name: this.product_attributes
+            }
+        }).then(rs => console.log(rs))            
+        .catch(console.error)
 
         return product
     }

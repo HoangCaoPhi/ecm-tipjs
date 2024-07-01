@@ -14,7 +14,6 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: 123456   
-
   mongo-express:
     image: mongo-express
     ports:
@@ -24,7 +23,13 @@ services:
       ME_CONFIG_MONGODB_ADMINPASSWORD: 123456
       ME_CONFIG_MONGODB_URL: mongodb://root:123456@mongo:27017/
       ME_CONFIG_BASICAUTH: false
-
+  rabbit:
+    image: rabbitmq:3.13-management
+    # environment:
+    #   RABBITMQ_DEFAULT_VHOST: rabbitmq
+    ports:
+      - 5672:5672
+      - 15672:15672
 
 volumes:
   redis_data:
